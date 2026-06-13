@@ -83,8 +83,10 @@ git tag swift-v0.1.0  && git push --tags   # -> SwiftPM resolves the tag
 ```
 
 - **npm** uses `NPM_TOKEN` (repo secret) + provenance.
-- **NuGet**, **PyPI**, **crates.io**, and **RubyGems** use Trusted Publishing
-  (OIDC), so no API keys are stored.
+- **NuGet**, **PyPI**, and **RubyGems** use Trusted Publishing (OIDC), so no
+  API keys are stored.
+- **crates.io** uses `CARGO_REGISTRY_TOKEN` for the first publish (which claims
+  the crate name); switch it to OIDC once the crate exists.
 - **Maven Central** uses the Sonatype Central Portal (GPG-signed, `io.axene`).
 - **Packagist** auto-syncs from git tags via its webhook; **SwiftPM** resolves
   the git tag directly. Both release jobs only run tests as a gate.
