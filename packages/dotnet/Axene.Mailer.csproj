@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- netstandard2.0 keeps it usable from .NET Framework, Unity, etc.;
+         net8.0 gets the modern BCL. -->
+    <TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+
+    <!-- NuGet package metadata -->
+    <PackageId>Axene.Mailer</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>Axene Solutions</Authors>
+    <Company>Axene Solutions</Company>
+    <Description>Official .NET client for Axene Mailer: send receipts, confirmations, and campaigns from your own domain. Priced in KES, billed via M-Pesa.</Description>
+    <PackageProjectUrl>https://axene.io/docs/mailer/getting-started/welcome</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Axene-Solutions/axene-sdks</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>email;mailer;axene;africa;kes;mpesa;transactional</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+  </ItemGroup>
+
+</Project>

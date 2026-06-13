@@ -1,0 +1,59 @@
+name: release
+
+# Per-package releases via tag prefix:
+#   git tag ts-v0.1.0     && git push --tags   -> publishes @axene/mailer to npm
+#   git tag dotnet-v0.1.0 && git push --tags   -> publishes Axene.Mailer to NuGet
+on:
+  push:
+    tags:
+      - 'ts-v*'
+      - 'dotnet-v*'
+
+jobs:
+  # ---- TypeScript -> npm (with provenance; needs NPM_TOKEN secret) ----
+  npm:
+    if: startsWith(github.ref, 'refs/tags/ts-v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write          # required for npm provenance
+    defaults:
+      run:
+        working-directory: packages/typescript
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm install
+      - run: npm run build
+      - run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  # ---- .NET -> NuGet via Trusted Publishing (OIDC, no API key) ----
+  nuget:
+    if: startsWith(github.ref, 'refs/tags/dotnet-v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write          # required to exchange the OIDC token
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Pack
+        run: dotnet pack packages/dotnet/Axene.Mailer.csproj -c Release -o ${{ runner.temp }}/nupkg
+      - name: NuGet trusted-publishing login
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: kentom        # your nuget.org username (the policy's Package Owner)
+      - name: Push
+        run: >
+          dotnet nuget push "${{ runner.temp }}/nupkg/*.nupkg"
+          --api-key ${{ steps.login.outputs.NUGET_API_KEY }}
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
