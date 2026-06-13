@@ -27,6 +27,7 @@ jobs:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
       - run: npm install
+      - run: npm test
       - run: npm run build
       - run: npm publish --access public --provenance
         env:
@@ -44,6 +45,8 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
+      - name: Test
+        run: dotnet test packages/dotnet/tests/Axene.Mailer.Tests.csproj -c Release
       - name: Pack
         run: dotnet pack packages/dotnet/Axene.Mailer.csproj -c Release -o ${{ runner.temp }}/nupkg
       - name: NuGet trusted-publishing login

@@ -28,6 +28,8 @@
 
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
+    <!-- The test project lives under tests/; keep it out of the shipped package. -->
+    <Compile Remove="tests/**/*.cs" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
