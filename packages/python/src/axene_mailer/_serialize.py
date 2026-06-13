@@ -27,6 +27,28 @@ def _iso(value: Any) -> Optional[str]:
     return value.isoformat() if isinstance(value, datetime) else value
 
 
+def prune(o: Dict[str, Any]) -> Dict[str, Any]:
+    """Drop keys whose value is ``None`` so they are omitted from the JSON body."""
+    return {k: v for k, v in o.items() if v is not None}
+
+
+def query(params: Dict[str, Any]) -> str:
+    """Build a URL query string, skipping ``None`` values.
+
+    Returns ``""`` when nothing is set, or ``"?a=1&b=2"`` otherwise. ``datetime``
+    values are serialized to ISO 8601.
+    """
+    from urllib.parse import urlencode
+
+    pairs = []
+    for k, v in params.items():
+        if v is None:
+            continue
+        pairs.append((k, _iso(v) if isinstance(v, datetime) else str(v)))
+    encoded = urlencode(pairs)
+    return f"?{encoded}" if encoded else ""
+
+
 def serialize_send(p: Dict[str, Any]) -> Dict[str, Any]:
     """Build the JSON body for a send.
 

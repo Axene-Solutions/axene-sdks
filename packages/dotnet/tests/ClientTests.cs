@@ -114,5 +114,104 @@ namespace Axene.Mailer.Tests
             Assert.StartsWith("[", body); // bare array, not { "emails": ... }
             Assert.Contains("from_", body);
         }
+
+        [Fact]
+        public async Task Validate_posts_full_send_body()
+        {
+            var h = new RecordingHandler(RecordingHandler.Json(HttpStatusCode.OK,
+                "{\"valid\":true,\"can_send\":true,\"issues\":[],\"plan\":\"starter\"," +
+                "\"usage\":{\"daily\":1,\"daily_limit\":100,\"monthly\":5,\"monthly_limit\":3000}}"));
+            var r = await Client(h).Emails.ValidateAsync(new SendEmail
+            {
+                From = new Address("f@x.co", "F"),
+                To = { "a@x.co" },
+                Subject = "s",
+                Html = "<p>hi</p>",
+            });
+
+            Assert.True(r.Valid);
+            Assert.True(r.CanSend);
+            Assert.Equal("starter", r.Plan);
+            Assert.Equal(100, r.Usage!.DailyLimit);
+
+            var req = h.Requests[0];
+            Assert.EndsWith("/v1/emails/validate", req.RequestUri!.ToString());
+            using var doc = JsonDocument.Parse(h.Bodies[0]);
+            var root = doc.RootElement;
+            Assert.True(root.TryGetProperty("from_", out _)); // full send body, mapped
+            Assert.Equal("s", root.GetProperty("subject").GetString());
+            Assert.Equal("<p>hi</p>", root.GetProperty("html").GetString());
+        }
+
+        [Fact]
+        public async Task UploadCsv_sends_multipart_file_field()
+        {
+            var h = new RecordingHandler(RecordingHandler.Json(HttpStatusCode.OK,
+                "{\"imported\":2,\"skipped\":0,\"errors\":[]}"));
+            var bytes = System.Text.Encoding.UTF8.GetBytes("email,name\na@x.co,A\n");
+            var r = await Client(h).Contacts.UploadCsvAsync("list_1", bytes, "people.csv");
+
+            Assert.Equal(2, r.Imported);
+
+            var req = h.Requests[0];
+            Assert.Equal(HttpMethod.Post, req.Method);
+            Assert.EndsWith("/v1/contacts/list_1/upload", req.RequestUri!.ToString());
+            Assert.StartsWith("multipart/form-data", req.Content!.Headers.ContentType!.MediaType);
+            Assert.Contains("name=file", h.Bodies[0].Replace("\"", "")); // field name is `file`
+            Assert.Contains("people.csv", h.Bodies[0]);
+        }
+
+        [Fact]
+        public async Task Suppressions_list_parses_envelope()
+        {
+            var h = new RecordingHandler(RecordingHandler.Json(HttpStatusCode.OK,
+                "{\"items\":[{\"id\":\"s1\",\"email_address\":\"a@x.co\",\"reason\":\"bounce\"}]," +
+                "\"total\":1,\"page\":0,\"limit\":50}"));
+            var page = await Client(h).Suppressions.ListAsync();
+
+            Assert.Equal(1, page.Total);
+            Assert.Equal(0, page.Page_);
+            Assert.Equal(50, page.Limit);
+            Assert.Single(page.Items);
+            Assert.Equal("a@x.co", page.Items[0].EmailAddress);
+
+            Assert.Contains("page=0", h.Requests[0].RequestUri!.ToString());
+        }
+
+        [Fact]
+        public async Task Templates_create_maps_html_to_html_body()
+        {
+            var h = new RecordingHandler(RecordingHandler.Json(HttpStatusCode.Created,
+                "{\"id\":\"t1\",\"name\":\"Welcome\",\"html_body\":\"<p>hi</p>\"}"));
+            var t = await Client(h).Templates.CreateAsync("Welcome", html: "<p>hi</p>", text: "hi");
+
+            Assert.Equal("t1", t.Id);
+
+            using var doc = JsonDocument.Parse(h.Bodies[0]);
+            var root = doc.RootElement;
+            Assert.True(root.TryGetProperty("html_body", out var html));
+            Assert.Equal("<p>hi</p>", html.GetString());
+            Assert.True(root.TryGetProperty("text_body", out _));
+            Assert.False(root.TryGetProperty("html", out _)); // not the raw `html` key
+        }
+
+        [Fact]
+        public async Task Webhooks_update_maps_isActive_to_is_active()
+        {
+            var h = new RecordingHandler(RecordingHandler.Json(HttpStatusCode.OK,
+                "{\"id\":\"w1\",\"url\":\"https://x.co/hook\",\"events\":[\"email.delivered\"]," +
+                "\"is_active\":false,\"created_at\":\"2026-01-01T00:00:00Z\"}"));
+            var w = await Client(h).Webhooks.UpdateAsync("w1", isActive: false);
+
+            Assert.False(w.IsActive);
+
+            var req = h.Requests[0];
+            Assert.Equal("PATCH", req.Method.Method);
+            using var doc = JsonDocument.Parse(h.Bodies[0]);
+            var root = doc.RootElement;
+            Assert.True(root.TryGetProperty("is_active", out var active));
+            Assert.False(active.GetBoolean());
+            Assert.False(root.TryGetProperty("url", out _)); // pruned: not supplied
+        }
 }
 }
