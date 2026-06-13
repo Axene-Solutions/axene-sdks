@@ -12,10 +12,9 @@ repositories {
     mavenCentral()
 }
 
-java {
-    withSourcesJar()
-    withJavadocJar()
-}
+// Note: the com.vanniktech.maven.publish plugin already adds the sources and
+// javadoc jars for a java-library, so we must NOT also call withSourcesJar() /
+// withJavadocJar() here (that produces duplicate artifacts and fails publish).
 
 tasks.withType<JavaCompile>().configureEach {
     // Library targets Java 11 (needs java.net.http.HttpClient) regardless of the build JDK.
