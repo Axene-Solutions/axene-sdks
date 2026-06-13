@@ -1,5 +1,11 @@
 # Axene Mailer SDKs
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-1F8A5B?style=flat-square&labelColor=101010)](LICENSE)
+[![npm](https://img.shields.io/badge/npm-%40axene%2Fmailer-CB3837?style=flat-square&labelColor=101010)](https://www.npmjs.com/package/@axene/mailer)
+[![NuGet](https://img.shields.io/badge/NuGet-Axene.Mailer-004880?style=flat-square&labelColor=101010)](https://www.nuget.org/packages/Axene.Mailer)
+[![Maven Central](https://img.shields.io/badge/Maven-io.axene%3Amailer-C71A36?style=flat-square&labelColor=101010)](https://central.sonatype.com/)
+[![Built in Kenya](https://img.shields.io/badge/Built%20in-Nairobi%2C%20Kenya-FFD100?style=flat-square&labelColor=101010)](https://axene.io)
+
 Official client libraries for [Axene Mailer](https://axene.io): professional email for Africa.
 Send receipts, confirmations, and campaigns from your own domain. Priced in KES, billed via M-Pesa.
 
@@ -69,6 +75,12 @@ git tag dotnet-v0.1.0 && git push --tags   # -> NuGet
 `spec/openapi.json` is the public surface of the Axene Mailer API (admin/internal
 routes are intentionally excluded). Regenerate it from the backend with
 `scripts/export-spec.sh` whenever the API changes.
+
+## Contributing
+
+Contributions are welcome. The SDKs are spec-driven, so most changes start from
+`spec/openapi.json`. Open an issue to discuss larger changes, then send a pull
+request. Run the per-package test suites before submitting.
 
 ## License
 
