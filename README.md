@@ -20,17 +20,19 @@ This is a spec-driven monorepo: every client wraps the same public API
 | Java | [`io.axene:mailer`](packages/java) | Maven Central | ✅ ready |
 | Rust | [`axene-mailer`](packages/rust) | crates.io | ✅ ready |
 | Ruby | [`axene-mailer`](packages/ruby) | RubyGems | ✅ ready |
-| PHP | [`axene/mailer`](packages/php) | Packagist | ✅ ready |
-| Swift | [`AxeneMailer`](packages/swift) | SwiftPM (git tag) | ✅ ready |
-| Go | [`axene`](packages/go) | git tag | 🚧 moves to its own repo |
+| PHP | [`axene/mailer`](packages/php) | Packagist | 🚧 repo ready, submit to Packagist |
+| Swift | [`AxeneMailer`](packages/swift) | SwiftPM (git tag) | ✅ v0.1.0 |
+| Go | [`axene`](packages/go) | git tag | ✅ v0.1.0 |
 
 Every client covers the same Core surface (emails, domains, contacts,
 suppressions, templates, webhooks), defined once in [`spec/SURFACE.md`](spec/SURFACE.md)
 and [`spec/DESIGN.md`](spec/DESIGN.md) and extracted from the live backend.
 
-> Go lives in its own repo at release time because a Go module path is the repo
-> path (`go get github.com/Axene-Solutions/axene-mailer-go`). The code is
-> developed here under `packages/go` and extracted on release.
+> **Git-based clients have their own repos** because their consumers resolve from
+> a repo root: Go ([`axene-mailer-go`](https://github.com/Axene-Solutions/axene-mailer-go)),
+> Swift ([`axene-mailer-swift`](https://github.com/Axene-Solutions/axene-mailer-swift)),
+> and PHP/Packagist ([`axene-mailer-php`](https://github.com/Axene-Solutions/axene-mailer-php)).
+> Their source is developed here under `packages/` and mirrored to those repos on release.
 
 ## Quickstart
 
