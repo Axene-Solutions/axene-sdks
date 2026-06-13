@@ -108,4 +108,16 @@ class ClientTest {
         assertEquals("verified", domains.get(0).status);
         assertEquals("/v1/domains/", paths.get(0));
     }
+    @Test
+    void send_batch_posts_bare_array() {
+        responseBody = "{\"total\":1,\"sent\":1,\"failed\":0,\"results\":[{\"id\":\"a\",\"status\":\"queued\"}]}";
+        statusScript = new int[] { 202 };
+        BatchResult r = client().sendBatch(java.util.List.of(
+                SendEmail.builder().from("f@x.co").to("a@x.co").subject("s").build()));
+        assertEquals(1, r.total);
+        assertEquals("a", r.results.get(0).id);
+        String body = bodies.get(0);
+        assertTrue(body.trim().startsWith("["), "batch body must be a bare array, not an object");
+        assertTrue(body.contains("\"from_\""));
+    }
 }

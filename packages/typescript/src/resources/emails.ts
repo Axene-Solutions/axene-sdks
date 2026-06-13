@@ -23,11 +23,12 @@ export class Emails {
     return this.http.request<SendEmailResponse>('POST', '/v1/emails/', serializeSend(params));
   }
 
-  /** Send up to your plan's batch limit in one call. */
+  /**
+   * Send up to your plan's batch limit in one call. The API accepts a bare
+   * array of messages.
+   */
   sendBatch(emails: SendEmailParams[]): Promise<BatchResponse> {
-    return this.http.request<BatchResponse>('POST', '/v1/emails/batch', {
-      emails: emails.map(serializeSend),
-    });
+    return this.http.request<BatchResponse>('POST', '/v1/emails/batch', emails.map(serializeSend));
   }
 
   /** Fetch a single email and its current status. */
@@ -40,8 +41,12 @@ export class Emails {
     return this.http.request<EmailEvent[]>('GET', `/v1/emails/${encodeURIComponent(id)}/events`);
   }
 
-  /** Validate that an address is well-formed and its domain can receive mail. */
-  validate(email: string): Promise<ValidationResult> {
-    return this.http.request<ValidationResult>('POST', '/v1/emails/validate', { email });
+  /**
+   * Dry-run a send: check whether `message` would be accepted (sender
+   * registered, domain verified, plan limits, account not restricted) without
+   * actually sending it.
+   */
+  validate(message: SendEmailParams): Promise<ValidationResult> {
+    return this.http.request<ValidationResult>('POST', '/v1/emails/validate', serializeSend(message));
   }
 }

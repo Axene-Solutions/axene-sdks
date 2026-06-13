@@ -1,0 +1,32 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "axene-mailer"
+version = "0.1.0"
+description = "Official Python client for Axene Mailer: send receipts, confirmations, and campaigns from your own domain. Priced in KES, billed via M-Pesa."
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+authors = [{ name = "Axene Solutions" }]
+keywords = ["email", "mailer", "axene", "africa", "kes", "mpesa", "transactional"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Communications :: Email",
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[project.urls]
+Homepage = "https://axene.io/docs/mailer/getting-started/welcome"
+Repository = "https://github.com/Axene-Solutions/axene-sdks"
+Issues = "https://github.com/Axene-Solutions/axene-sdks/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/axene_mailer"]

@@ -60,6 +60,13 @@ export interface SendEmailResponse {
 
 /** Result of {@link Emails.sendBatch}. */
 export interface BatchResponse {
+  /** Number of messages submitted. */
+  total: number;
+  /** Number accepted for delivery. */
+  sent: number;
+  /** Number rejected. */
+  failed: number;
+  /** One result per submitted message, in order. */
   results: SendEmailResponse[];
 }
 
@@ -83,11 +90,31 @@ export interface Email {
   [k: string]: unknown;
 }
 
-/** Result of {@link Emails.validate}. */
+/** A single reason a message would not send. */
+export interface ValidationIssue {
+  field: string;
+  error: string;
+}
+
+/** Sending-quota usage returned alongside a validation. */
+export interface ValidationUsage {
+  daily: number;
+  daily_limit: number;
+  monthly: number;
+  monthly_limit: number;
+}
+
+/**
+ * Result of {@link Emails.validate}: a dry-run that checks whether a message
+ * would send (sender registered, domain verified, plan limits, restrictions)
+ * without actually sending it.
+ */
 export interface ValidationResult {
-  email: string;
   valid: boolean;
-  reason?: string;
+  can_send: boolean;
+  issues: ValidationIssue[];
+  plan: string;
+  usage: ValidationUsage;
 }
 
 /** A sending domain and its verification status. */

@@ -40,19 +40,22 @@ namespace Axene.Mailer
         public Task<SendEmailResult> SendAsync(SendEmail email, CancellationToken ct = default)
             => _transport.RequestAsync<SendEmailResult>(HttpMethod.Post, "v1/emails/", email.ToWire(), ct);
 
-        /// <summary>Send up to your plan's batch limit in one call.</summary>
+        /// <summary>Send up to your plan's batch limit in one call. The API accepts a bare array of messages.</summary>
         public Task<BatchResult> SendBatchAsync(IEnumerable<SendEmail> emails, CancellationToken ct = default)
             => _transport.RequestAsync<BatchResult>(HttpMethod.Post, "v1/emails/batch",
-                new Dictionary<string, object> { ["emails"] = emails.Select(e => e.ToWire()).ToList() }, ct);
+                emails.Select(e => e.ToWire()).ToList(), ct);
 
         /// <summary>Fetch a single email and its current status.</summary>
         public Task<EmailRecord> GetAsync(string id, CancellationToken ct = default)
             => _transport.RequestAsync<EmailRecord>(HttpMethod.Get, $"v1/emails/{System.Uri.EscapeDataString(id)}", null, ct);
 
-        /// <summary>Validate an address is well-formed and its domain can receive mail.</summary>
-        public Task<ValidationResult> ValidateAsync(string email, CancellationToken ct = default)
-            => _transport.RequestAsync<ValidationResult>(HttpMethod.Post, "v1/emails/validate",
-                new Dictionary<string, object> { ["email"] = email }, ct);
+        /// <summary>
+        /// Dry-run a send: check whether <paramref name="message"/> would be accepted
+        /// (sender registered, domain verified, plan limits, account not restricted)
+        /// without actually sending it.
+        /// </summary>
+        public Task<ValidationResult> ValidateAsync(SendEmail message, CancellationToken ct = default)
+            => _transport.RequestAsync<ValidationResult>(HttpMethod.Post, "v1/emails/validate", message.ToWire(), ct);
 
         /// <summary>List your sending domains and their verification status.</summary>
         public Task<List<DomainRecord>> ListDomainsAsync(CancellationToken ct = default)

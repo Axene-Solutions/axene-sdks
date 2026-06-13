@@ -19,6 +19,12 @@ namespace Axene.Mailer
     /// <summary>Result of a batch send.</summary>
     public sealed class BatchResult
     {
+        /// <summary>Number of messages submitted.</summary>
+        [JsonPropertyName("total")] public int Total { get; set; }
+        /// <summary>Number accepted for delivery.</summary>
+        [JsonPropertyName("sent")] public int Sent { get; set; }
+        /// <summary>Number rejected.</summary>
+        [JsonPropertyName("failed")] public int Failed { get; set; }
         /// <summary>One result per submitted message, in order.</summary>
         [JsonPropertyName("results")] public List<SendEmailResult> Results { get; set; } = new List<SendEmailResult>();
     }
@@ -42,15 +48,44 @@ namespace Axene.Mailer
         [JsonPropertyName("delivered_at")] public string? DeliveredAt { get; set; }
     }
 
-    /// <summary>Result of an address validation.</summary>
+    /// <summary>A single reason a message would not send.</summary>
+    public sealed class ValidationIssue
+    {
+        /// <summary>The offending field (for example <c>from</c> or <c>account</c>).</summary>
+        [JsonPropertyName("field")] public string Field { get; set; } = "";
+        /// <summary>A human-readable description of the problem.</summary>
+        [JsonPropertyName("error")] public string Error { get; set; } = "";
+    }
+
+    /// <summary>Sending-quota usage returned alongside a validation.</summary>
+    public sealed class ValidationUsage
+    {
+        /// <summary>Messages sent today.</summary>
+        [JsonPropertyName("daily")] public int Daily { get; set; }
+        /// <summary>Daily send limit on the current plan.</summary>
+        [JsonPropertyName("daily_limit")] public int DailyLimit { get; set; }
+        /// <summary>Messages sent this month.</summary>
+        [JsonPropertyName("monthly")] public int Monthly { get; set; }
+        /// <summary>Monthly send limit on the current plan.</summary>
+        [JsonPropertyName("monthly_limit")] public int MonthlyLimit { get; set; }
+    }
+
+    /// <summary>
+    /// Result of a dry-run validation: whether a message would send (sender
+    /// registered, domain verified, plan limits, restrictions) without sending it.
+    /// </summary>
     public sealed class ValidationResult
     {
-        /// <summary>The address that was checked.</summary>
-        [JsonPropertyName("email")] public string Email { get; set; } = "";
-        /// <summary>Whether the address is well-formed and deliverable.</summary>
+        /// <summary>True when there are no blocking issues.</summary>
         [JsonPropertyName("valid")] public bool Valid { get; set; }
-        /// <summary>Reason the address is invalid, if it is.</summary>
-        [JsonPropertyName("reason")] public string? Reason { get; set; }
+        /// <summary>True when the message can be sent right now.</summary>
+        [JsonPropertyName("can_send")] public bool CanSend { get; set; }
+        /// <summary>Blocking issues, if any.</summary>
+        [JsonPropertyName("issues")] public List<ValidationIssue> Issues { get; set; } = new List<ValidationIssue>();
+        /// <summary>The account's current plan tier.</summary>
+        [JsonPropertyName("plan")] public string Plan { get; set; } = "";
+        /// <summary>Current send-quota usage.</summary>
+        [JsonPropertyName("usage")] public ValidationUsage? Usage { get; set; }
     }
 
     /// <summary>A sending domain and its verification status.</summary>

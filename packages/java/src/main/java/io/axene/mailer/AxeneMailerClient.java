@@ -12,7 +12,6 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -65,15 +64,13 @@ public final class AxeneMailerClient {
         return request("POST", "/v1/emails/", email.toWire(), type(SendEmailResult.class));
     }
 
-    /** Send up to your plan's batch limit in one call. */
+    /** Send up to your plan's batch limit in one call. The API accepts a bare array of messages. */
     public BatchResult sendBatch(List<SendEmail> emails) {
         List<Map<String, Object>> wire = new ArrayList<>();
         for (SendEmail e : emails) {
             wire.add(e.toWire());
         }
-        Map<String, Object> body = new HashMap<>();
-        body.put("emails", wire);
-        return request("POST", "/v1/emails/batch", body, type(BatchResult.class));
+        return request("POST", "/v1/emails/batch", wire, type(BatchResult.class));
     }
 
     /** Fetch a single email and its current status. */
@@ -81,11 +78,13 @@ public final class AxeneMailerClient {
         return request("GET", "/v1/emails/" + enc(id), null, type(EmailRecord.class));
     }
 
-    /** Validate an address is well-formed and its domain can receive mail. */
-    public ValidationResult validate(String email) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("email", email);
-        return request("POST", "/v1/emails/validate", body, type(ValidationResult.class));
+    /**
+     * Dry-run a send: check whether {@code message} would be accepted (sender
+     * registered, domain verified, plan limits, account not restricted) without
+     * actually sending it.
+     */
+    public ValidationResult validate(SendEmail message) {
+        return request("POST", "/v1/emails/validate", message.toWire(), type(ValidationResult.class));
     }
 
     /** List your sending domains and their verification status. */

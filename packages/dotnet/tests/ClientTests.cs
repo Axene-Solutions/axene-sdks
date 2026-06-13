@@ -100,5 +100,19 @@ namespace Axene.Mailer.Tests
             Assert.Equal(2, to.GetArrayLength());
             Assert.Equal("a@x.co", to[0].GetProperty("email").GetString());
         }
-    }
+    
+        [Fact]
+        public async Task SendBatch_posts_bare_array()
+        {
+            var h = new RecordingHandler(RecordingHandler.Json(HttpStatusCode.Accepted,
+                "{\"total\":1,\"sent\":1,\"failed\":0,\"results\":[{\"id\":\"a\",\"status\":\"queued\"}]}"));
+            var r = await Client(h).SendBatchAsync(new[] {
+                new SendEmail { From = "f@x.co", To = { "a@x.co" }, Subject = "s" } });
+            Assert.Equal(1, r.Total);
+            Assert.Equal("a", r.Results[0].Id);
+            var body = h.Bodies[0].TrimStart();
+            Assert.StartsWith("[", body); // bare array, not { "emails": ... }
+            Assert.Contains("from_", body);
+        }
+}
 }

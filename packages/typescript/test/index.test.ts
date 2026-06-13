@@ -124,10 +124,28 @@ describe('other endpoints', () => {
     expect(calls[0]!.init.method).toBe('GET');
   });
 
-  it('emails.validate posts the address', async () => {
-    const { fn, calls } = mockFetch([{ status: 200, body: { email: 'a@x.co', valid: true } }]);
-    await client(fn).emails.validate('a@x.co');
+  it('emails.validate dry-runs a full message', async () => {
+    const { fn, calls } = mockFetch([
+      { status: 200, body: { valid: true, can_send: true, issues: [], plan: 'free', usage: { daily: 0, daily_limit: 100, monthly: 0, monthly_limit: 3000 } } },
+    ]);
+    const res = await client(fn).emails.validate({ from: 'f@x.co', to: 'a@x.co', subject: 's' });
+    expect(res.can_send).toBe(true);
     expect(calls[0]!.url).toBe('https://mail.axene.io/v1/emails/validate');
-    expect(JSON.parse(calls[0]!.init.body as string)).toEqual({ email: 'a@x.co' });
+    const body = JSON.parse(calls[0]!.init.body as string);
+    expect(body.from_).toEqual({ email: 'f@x.co' }); // full send body, not { email }
+    expect(body.to).toEqual([{ email: 'a@x.co' }]);
+  });
+
+  it('emails.sendBatch posts a bare array', async () => {
+    const { fn, calls } = mockFetch([
+      { status: 202, body: { total: 1, sent: 1, failed: 0, results: [{ id: 'a', status: 'queued' }] } },
+    ]);
+    const res = await client(fn).emails.sendBatch([{ from: 'f@x.co', to: 'a@x.co', subject: 's' }]);
+    expect(res.total).toBe(1);
+    expect(res.results[0]!.id).toBe('a');
+    expect(calls[0]!.url).toBe('https://mail.axene.io/v1/emails/batch');
+    const body = JSON.parse(calls[0]!.init.body as string);
+    expect(Array.isArray(body)).toBe(true); // bare array, not { emails: [...] }
+    expect(body[0].from_).toEqual({ email: 'f@x.co' });
   });
 });
