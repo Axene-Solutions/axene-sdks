@@ -7,6 +7,7 @@ the package has no runtime dependencies.
 from __future__ import annotations
 
 import json
+import os
 import time
 import urllib.error
 import urllib.request
@@ -63,6 +64,37 @@ class HttpTransport:
                     continue
 
         raise AxeneError(0, f"Axene request failed: {last_error}")
+
+    def upload(self, path: str, file_bytes: bytes, filename: str) -> Any:
+        """Upload a single file as ``multipart/form-data`` under the field name
+        ``file``.
+
+        The multipart body is built by hand (boundary included) so the package
+        stays dependency-free. Not retried, since uploads are not idempotent.
+        """
+        url = f"{self._base_url}{path}"
+        boundary = "axene" + os.urandom(16).hex()
+        crlf = b"\r\n"
+        head = (
+            f'--{boundary}\r\n'
+            f'Content-Disposition: form-data; name="file"; filename="{filename}"\r\n'
+            f"Content-Type: application/octet-stream\r\n\r\n"
+        ).encode("utf-8")
+        tail = f"\r\n--{boundary}--\r\n".encode("utf-8")
+        data = head + file_bytes + tail
+
+        req = urllib.request.Request(url, data=data, method="POST")
+        req.add_header("Authorization", f"Bearer {self._api_key}")
+        req.add_header("Content-Type", f"multipart/form-data; boundary={boundary}")
+        req.add_header("User-Agent", _USER_AGENT)
+        try:
+            with urllib.request.urlopen(req, timeout=self._timeout) as resp:
+                raw = resp.read().decode("utf-8")
+                return json.loads(raw) if raw else None
+        except urllib.error.HTTPError as e:
+            raise self._to_error(e.code, e.read().decode("utf-8", "replace"))
+        except urllib.error.URLError as e:
+            raise AxeneError(0, f"Axene upload failed: {e}")
 
     @staticmethod
     def _is_retryable(status: int) -> bool:

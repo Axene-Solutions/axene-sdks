@@ -68,7 +68,7 @@ namespace Axene.Mailer.Internal
                     if (!res.IsSuccessStatusCode)
                         throw AxeneException.FromResponse((int)res.StatusCode, text);
 
-                    return JsonSerializer.Deserialize<T>(text, JsonOpts)!;
+                    return Deserialize<T>(text);
                 }
                 catch (AxeneException) { throw; } // a real API error: do not retry
                 catch (Exception ex) when (attempt < _maxRetries)
@@ -80,6 +80,45 @@ namespace Axene.Mailer.Internal
             throw new AxeneException(0, $"Axene request failed: {last?.Message}", null);
         }
 
+        /// <summary>
+        /// Send a request that returns no useful body (for example a <c>204</c>
+        /// from a DELETE). The response body, if any, is discarded.
+        /// </summary>
+        public Task RequestNoContentAsync(HttpMethod method, string path, object? body, CancellationToken ct)
+            => RequestAsync<Unit>(method, path, body, ct);
+
+        /// <summary>
+        /// Upload a single file as <c>multipart/form-data</c> under the field name
+        /// <c>file</c>. Used by the CSV / suppression import endpoints. Not retried
+        /// (uploads are not idempotent).
+        /// </summary>
+        public async Task<T> UploadAsync<T>(string path, byte[] file, string filename, CancellationToken ct)
+        {
+            using var form = new MultipartFormDataContent();
+            var part = new ByteArrayContent(file);
+            part.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+            form.Add(part, "file", filename);
+
+            using var req = new HttpRequestMessage(HttpMethod.Post, path) { Content = form };
+            using var res = await _http.SendAsync(req, ct).ConfigureAwait(false);
+
+            var text = await res.Content.ReadAsStringAsync().ConfigureAwait(false);
+            if (!res.IsSuccessStatusCode)
+                throw AxeneException.FromResponse((int)res.StatusCode, text);
+
+            return Deserialize<T>(text);
+        }
+
+        /// <summary>
+        /// Deserialize a JSON body, tolerating an empty body (204 No Content) by
+        /// returning <c>default</c>. The non-null suppression is safe: callers of
+        /// the empty-body path use the throwaway <see cref="Unit"/> type.
+        /// </summary>
+        private static T Deserialize<T>(string text)
+            => string.IsNullOrWhiteSpace(text)
+                ? default!
+                : JsonSerializer.Deserialize<T>(text, JsonOpts)!;
+
         private static bool IsRetryable(int status) => status == 429 || status >= 500;
 
         private static TimeSpan Backoff(HttpResponseMessage? res, int attempt)
@@ -90,4 +129,7 @@ namespace Axene.Mailer.Internal
             if (_ownsHttp) _http.Dispose();
         }
     }
+
+    /// <summary>A throwaway result type for requests that return no useful body.</summary>
+    internal sealed class Unit { }
 }

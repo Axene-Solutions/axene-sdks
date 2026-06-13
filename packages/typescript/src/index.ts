@@ -22,6 +22,10 @@ export { Axene } from './client';
 export { AxeneError } from './errors';
 export { Emails } from './resources/emails';
 export { Domains } from './resources/domains';
+export { Contacts } from './resources/contacts';
+export { Suppressions } from './resources/suppressions';
+export { Templates } from './resources/templates';
+export { Webhooks } from './resources/webhooks';
 export type {
   AxeneOptions,
   Address,
@@ -30,7 +34,44 @@ export type {
   SendEmailResponse,
   BatchResponse,
   Email,
+  EmailDetail,
   EmailEvent,
+  EmailSearchHit,
+  ScheduledEmail,
+  ListEmailsParams,
+  SearchEmailsParams,
   ValidationResult,
+  ValidationIssue,
+  ValidationUsage,
+  Page,
+  DomainListItem,
   Domain,
+  DnsRecord,
+  DomainHealth,
+  DomainHealthCheck,
+  DomainDiagnosis,
+  DkimRotation,
+  DomainTransfer,
+  DomainAvailability,
+  DomainCheck,
+  ContactList,
+  Contact,
+  ContactListDetail,
+  CreateListParams,
+  UpdateListParams,
+  AddContactParams,
+  CsvImportResult,
+  BulkSendParams,
+  BulkSendResult,
+  Suppression,
+  AddSuppressionParams,
+  BulkSuppressionResult,
+  Template,
+  CreateTemplateParams,
+  UpdateTemplateParams,
+  Webhook,
+  CreateWebhookParams,
+  UpdateWebhookParams,
+  WebhookDelivery,
+  WebhookDeliveryDetail,
 } from './types';

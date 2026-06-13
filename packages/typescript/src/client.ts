@@ -1,11 +1,15 @@
 /**
- * The Axene client. Composes the HTTP transport with the resource groups
- * (`emails`, `domains`). This is the entry point most code touches.
+ * The Axene client. Composes the HTTP transport with the resource groups. This
+ * is the entry point most code touches.
  * @module
  */
 import { HttpTransport } from './http';
 import { Emails } from './resources/emails';
 import { Domains } from './resources/domains';
+import { Contacts } from './resources/contacts';
+import { Suppressions } from './resources/suppressions';
+import { Templates } from './resources/templates';
+import { Webhooks } from './resources/webhooks';
 import type { AxeneOptions } from './types';
 
 /**
@@ -25,14 +29,26 @@ import type { AxeneOptions } from './types';
  * ```
  */
 export class Axene {
-  /** Send and inspect emails. */
+  /** Send, search, schedule, and inspect emails. */
   readonly emails: Emails;
-  /** Inspect your sending domains. */
+  /** Register, verify, and transfer sending domains. */
   readonly domains: Domains;
+  /** Manage subscriber lists and bulk sends. */
+  readonly contacts: Contacts;
+  /** Manage the do-not-send suppression list. */
+  readonly suppressions: Suppressions;
+  /** Manage reusable email templates. */
+  readonly templates: Templates;
+  /** Manage event webhooks and inspect deliveries. */
+  readonly webhooks: Webhooks;
 
   constructor(options: AxeneOptions) {
     const http = new HttpTransport(options);
     this.emails = new Emails(http);
     this.domains = new Domains(http);
+    this.contacts = new Contacts(http);
+    this.suppressions = new Suppressions(http);
+    this.templates = new Templates(http);
+    this.webhooks = new Webhooks(http);
   }
 }

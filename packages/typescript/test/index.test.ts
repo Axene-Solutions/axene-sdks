@@ -148,4 +148,102 @@ describe('other endpoints', () => {
     expect(Array.isArray(body)).toBe(true); // bare array, not { emails: [...] }
     expect(body[0].from_).toEqual({ email: 'f@x.co' });
   });
+
+  it('emails.search builds a query string and returns hits', async () => {
+    const { fn, calls } = mockFetch([{ status: 200, body: [{ id: 'em_1', status: 'delivered' }] }]);
+    await client(fn).emails.search({ q: 'status:bounced', page: 1, limit: 10 });
+    expect(calls[0]!.url).toBe('https://mail.axene.io/v1/emails/search?q=status%3Abounced&page=1&limit=10');
+  });
+
+  it('emails.updates requires since and serializes a Date', async () => {
+    const { fn, calls } = mockFetch([{ status: 200, body: [] }]);
+    await client(fn).emails.updates(new Date('2030-01-01T00:00:00.000Z'));
+    expect(calls[0]!.url).toBe('https://mail.axene.io/v1/emails/updates?since=2030-01-01T00%3A00%3A00.000Z');
+  });
+});
+
+describe('contacts', () => {
+  it('createList maps iconSeed -> icon_seed and prunes undefined', async () => {
+    const { fn, calls } = mockFetch([{ status: 201, body: { id: 'cl_1', name: 'VIPs', contact_count: 0 } }]);
+    await client(fn).contacts.createList({ name: 'VIPs', iconSeed: 'abc' });
+    expect(calls[0]!.url).toBe('https://mail.axene.io/v1/contacts/');
+    const body = JSON.parse(calls[0]!.init.body as string);
+    expect(body).toEqual({ name: 'VIPs', icon_seed: 'abc' }); // description pruned
+  });
+
+  it('bulkSend injects contact_list_id and renames sender field', async () => {
+    const { fn, calls } = mockFetch([{ status: 200, body: { queued: 2, skipped: 0, errors: [] } }]);
+    await client(fn).contacts.bulkSend('cl_9', { senderAddressId: 'sa_1', subject: 'Hi {{name}}' });
+    const body = JSON.parse(calls[0]!.init.body as string);
+    expect(body.contact_list_id).toBe('cl_9');
+    expect(body.sender_address_id).toBe('sa_1');
+    expect(calls[0]!.url).toBe('https://mail.axene.io/v1/contacts/cl_9/send');
+  });
+});
+
+describe('suppressions', () => {
+  it('add maps email -> email_address with default reason', async () => {
+    const { fn, calls } = mockFetch([{ status: 201, body: { id: 's_1', email_address: 'x@y.co', reason: 'manual' } }]);
+    await client(fn).suppressions.add({ email: 'x@y.co' });
+    const body = JSON.parse(calls[0]!.init.body as string);
+    expect(body).toEqual({ email_address: 'x@y.co', reason: 'manual' });
+  });
+
+  it('list parses the {items,total,page,limit} envelope', async () => {
+    const { fn } = mockFetch([{ status: 200, body: { items: [{ id: 's_1' }], total: 1, page: 0, limit: 50 } }]);
+    const page = await client(fn).suppressions.list({ search: 'spam' });
+    expect(page.total).toBe(1);
+    expect(page.items[0]!.id).toBe('s_1');
+  });
+});
+
+describe('templates', () => {
+  it('create maps html/text -> html_body/text_body', async () => {
+    const { fn, calls } = mockFetch([{ status: 201, body: { id: 't_1', name: 'Welcome' } }]);
+    await client(fn).templates.create({ name: 'Welcome', html: '<p>hi</p>', text: 'hi' });
+    const body = JSON.parse(calls[0]!.init.body as string);
+    expect(body).toEqual({ name: 'Welcome', html_body: '<p>hi</p>', text_body: 'hi' });
+  });
+});
+
+describe('webhooks', () => {
+  it('create posts url + events', async () => {
+    const { fn, calls } = mockFetch([{ status: 201, body: { id: 'wh_1', url: 'https://x.co/h', events: ['email.delivered'] } }]);
+    await client(fn).webhooks.create({ url: 'https://x.co/h', events: ['email.delivered'] });
+    const body = JSON.parse(calls[0]!.init.body as string);
+    expect(body).toEqual({ url: 'https://x.co/h', events: ['email.delivered'] });
+  });
+
+  it('update maps isActive -> is_active and prunes', async () => {
+    const { fn, calls } = mockFetch([{ status: 200, body: { id: 'wh_1', is_active: false } }]);
+    await client(fn).webhooks.update('wh_1', { isActive: false });
+    const body = JSON.parse(calls[0]!.init.body as string);
+    expect(body).toEqual({ is_active: false }); // url/events pruned
+    expect(calls[0]!.init.method).toBe('PATCH');
+  });
+
+  it('listDeliveries parses the envelope with a status filter', async () => {
+    const { fn, calls } = mockFetch([{ status: 200, body: { items: [], total: 0, page: 0, limit: 20 } }]);
+    await client(fn).webhooks.listDeliveries('wh_1', { status: 'failed' });
+    expect(calls[0]!.url).toBe('https://mail.axene.io/v1/webhooks/wh_1/deliveries?status=failed');
+  });
+});
+
+describe('domains', () => {
+  it('create posts the name and parses dns_records', async () => {
+    const { fn, calls } = mockFetch([
+      { status: 201, body: { id: 'd_1', name: 'shop.co', status: 'pending', dkim_selector: 'axene', dns_records: [] } },
+    ]);
+    const d = await client(fn).domains.create('shop.co');
+    expect(d.dkim_selector).toBe('axene');
+    const body = JSON.parse(calls[0]!.init.body as string);
+    expect(body).toEqual({ name: 'shop.co' });
+  });
+
+  it('transfer renames targetEmail -> target_email', async () => {
+    const { fn, calls } = mockFetch([{ status: 200, body: { id: 'dt_1', target_email: 'new@owner.co', status: 'pending' } }]);
+    await client(fn).domains.transfer('d_1', { targetEmail: 'new@owner.co' });
+    const body = JSON.parse(calls[0]!.init.body as string);
+    expect(body).toEqual({ target_email: 'new@owner.co', note: null });
+  });
 });

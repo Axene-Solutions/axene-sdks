@@ -10,7 +10,7 @@
  *
  * <pre>{@code
  * AxeneMailerClient axene = new AxeneMailerClient("axm_k_your_api_key");
- * SendEmailResult res = axene.send(SendEmail.builder()
+ * SendEmailResult res = axene.emails().send(SendEmail.builder()
  *     .from("hello@yourdomain.com", "Your Shop")
  *     .to("customer@example.com")
  *     .subject("Your receipt")

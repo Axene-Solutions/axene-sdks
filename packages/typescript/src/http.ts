@@ -79,6 +79,34 @@ export class HttpTransport {
     throw new AxeneError(0, `Axene request failed: ${String(lastError)}`);
   }
 
+  /**
+   * Upload a single file as `multipart/form-data` under the field name `file`.
+   * Used by the CSV import endpoints. Does not set `Content-Type` so the runtime
+   * adds the correct multipart boundary. Not retried (uploads are not idempotent).
+   */
+  async upload<T>(path: string, file: Uint8Array, filename: string): Promise<T> {
+    const url = `${this.cfg.baseUrl}${path}`;
+    const form = new FormData();
+    const blob = new Blob([file.slice()]);
+    form.append('file', blob, filename);
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), this.cfg.timeoutMs);
+    try {
+      const res = await this.cfg.fetch(url, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${this.cfg.apiKey}`, 'User-Agent': '@axene/mailer' },
+        body: form as unknown as BodyInit,
+        signal: controller.signal,
+      });
+      const payload = await this.parseBody(res);
+      if (!res.ok) throw this.toError(res.status, payload);
+      return payload as T;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
   private isRetryable(status: number): boolean {
     return status === 429 || status >= 500;
   }

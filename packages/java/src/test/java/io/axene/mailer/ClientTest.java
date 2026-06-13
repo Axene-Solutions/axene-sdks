@@ -120,4 +120,94 @@ class ClientTest {
         assertTrue(body.trim().startsWith("["), "batch body must be a bare array, not an object");
         assertTrue(body.contains("\"from_\""));
     }
+
+    @Test
+    void validate_sends_full_body_and_parses() {
+        responseBody = "{\"valid\":true,\"can_send\":true,\"issues\":[],\"plan\":\"starter\","
+                + "\"usage\":{\"daily\":1,\"daily_limit\":100,\"monthly\":2,\"monthly_limit\":1000}}";
+        statusScript = new int[] { 200 };
+        ValidationResult v = client().emails().validate(SendEmail.builder()
+                .from("hello@shop.co", "Shop")
+                .to("a@example.com")
+                .subject("Hi")
+                .html("<p>x</p>")
+                .tag("welcome")
+                .build());
+        assertTrue(v.valid);
+        assertTrue(v.canSend);
+        assertEquals("starter", v.plan);
+        assertEquals(100, v.usage.dailyLimit);
+        assertEquals("/v1/emails/validate", paths.get(0));
+        String body = bodies.get(0);
+        assertTrue(body.contains("\"from_\""), "validate must send the full send body with from_");
+        assertTrue(body.contains("\"subject\":\"Hi\""));
+        assertTrue(body.contains("\"tags\":[\"welcome\"]"));
+    }
+
+    @Test
+    void upload_csv_sends_multipart_with_file_field() {
+        responseBody = "{\"imported\":3,\"skipped\":1,\"errors\":[]}";
+        statusScript = new int[] { 200 };
+        byte[] csv = "email,name\na@x.co,A\n".getBytes(StandardCharsets.UTF_8);
+        CsvImportResult r = client().contacts().uploadCsv("list_1", csv, "contacts.csv");
+        assertEquals(3, r.imported);
+        assertEquals(1, r.skipped);
+        assertEquals("/v1/contacts/list_1/upload", paths.get(0));
+        assertEquals("Bearer axm_k_test", auths.get(0));
+        String body = bodies.get(0);
+        assertTrue(body.contains("----axene"), "multipart body must carry the boundary marker");
+        assertTrue(body.contains("name=\"file\""), "the single multipart field must be named file");
+        assertTrue(body.contains("filename=\"contacts.csv\""));
+        assertTrue(body.contains("a@x.co"), "the file contents must be in the body");
+    }
+
+    @Test
+    void suppressions_list_parses_envelope() {
+        responseBody = "{\"items\":[{\"id\":\"s1\",\"email_address\":\"bad@x.co\",\"reason\":\"bounce\","
+                + "\"created_at\":\"2026-01-01\"}],\"total\":1,\"page\":0,\"limit\":50}";
+        statusScript = new int[] { 200 };
+        Page<Suppression> page = client().suppressions().list(0, 50, null);
+        assertEquals(1, page.total);
+        assertEquals(0, page.page);
+        assertEquals(50, page.limit);
+        assertEquals(1, page.items.size());
+        assertEquals("bad@x.co", page.items.get(0).emailAddress);
+        assertEquals("bounce", page.items.get(0).reason);
+        assertTrue(paths.get(0).startsWith("/v1/suppressions"));
+    }
+
+    @Test
+    void templates_create_maps_html_to_html_body() {
+        responseBody = "{\"id\":\"t1\",\"name\":\"Welcome\",\"html_body\":\"<p>hi</p>\","
+                + "\"text_body\":\"hi\",\"created_at\":\"2026-01-01\",\"updated_at\":\"2026-01-01\"}";
+        statusScript = new int[] { 201 };
+        Template t = client().templates().create(TemplateParams.builder()
+                .name("Welcome")
+                .html("<p>hi</p>")
+                .text("hi")
+                .build());
+        assertEquals("t1", t.id);
+        assertEquals("<p>hi</p>", t.htmlBody);
+        assertEquals("/v1/templates/", paths.get(0));
+        String body = bodies.get(0);
+        assertTrue(body.contains("\"html_body\":\"<p>hi</p>\""), "html must map to html_body");
+        assertTrue(body.contains("\"text_body\":\"hi\""), "text must map to text_body");
+        assertFalse(body.contains("\"html\":"), "raw html must not be sent for templates");
+    }
+
+    @Test
+    void webhooks_update_maps_is_active() {
+        responseBody = "{\"id\":\"w1\",\"url\":\"https://h.co/x\",\"events\":[\"email.delivered\"],"
+                + "\"secret\":\"sec\",\"is_active\":false,\"created_at\":\"2026-01-01\"}";
+        statusScript = new int[] { 200 };
+        Webhook w = client().webhooks().update("w1", WebhookParams.builder()
+                .isActive(false)
+                .build());
+        assertEquals("w1", w.id);
+        assertFalse(w.isActive);
+        assertEquals("/v1/webhooks/w1", paths.get(0));
+        String body = bodies.get(0);
+        assertTrue(body.contains("\"is_active\":false"), "isActive must map to is_active");
+        assertFalse(body.contains("\"isActive\""), "camelCase isActive must not be sent");
+    }
 }

@@ -18,10 +18,19 @@ This is a spec-driven monorepo: every client wraps the same public API
 | .NET (C#) | [`Axene.Mailer`](packages/dotnet) | NuGet | ✅ ready |
 | Python | [`axene-mailer`](packages/python) | PyPI | ✅ ready |
 | Java | [`io.axene:mailer`](packages/java) | Maven Central | ✅ ready |
-| Go | `github.com/Axene-Solutions/axene-mailer-go` | n/a | 🚧 separate repo |
+| Rust | [`axene-mailer`](packages/rust) | crates.io | ✅ ready |
+| Ruby | [`axene-mailer`](packages/ruby) | RubyGems | ✅ ready |
+| PHP | [`axene/mailer`](packages/php) | Packagist | ✅ ready |
+| Swift | [`AxeneMailer`](packages/swift) | SwiftPM (git tag) | ✅ ready |
+| Go | [`axene`](packages/go) | git tag | 🚧 moves to its own repo |
 
-> Go lives in its own repo because a Go module path is the repo path
-> (`go get github.com/Axene-Solutions/axene-mailer-go`). Everything else is fine in this monorepo.
+Every client covers the same Core surface (emails, domains, contacts,
+suppressions, templates, webhooks), defined once in [`spec/SURFACE.md`](spec/SURFACE.md)
+and [`spec/DESIGN.md`](spec/DESIGN.md) and extracted from the live backend.
+
+> Go lives in its own repo at release time because a Go module path is the repo
+> path (`go get github.com/Axene-Solutions/axene-mailer-go`). The code is
+> developed here under `packages/go` and extracted on release.
 
 ## Quickstart
 
@@ -65,10 +74,23 @@ Each package releases independently via a tag prefix (see `.github/workflows/rel
 ```bash
 git tag ts-v0.1.0     && git push --tags   # -> npm
 git tag dotnet-v0.1.0 && git push --tags   # -> NuGet
+git tag py-v0.1.0     && git push --tags   # -> PyPI
+git tag java-v0.1.0   && git push --tags   # -> Maven Central
+git tag rust-v0.1.0   && git push --tags   # -> crates.io
+git tag ruby-v0.1.0   && git push --tags   # -> RubyGems
+git tag php-v0.1.0    && git push --tags   # -> Packagist (auto-sync on tag)
+git tag swift-v0.1.0  && git push --tags   # -> SwiftPM resolves the tag
 ```
 
 - **npm** uses `NPM_TOKEN` (repo secret) + provenance.
-- **NuGet** uses Trusted Publishing (OIDC), so no API key is stored.
+- **NuGet**, **PyPI**, and **RubyGems** use Trusted Publishing (OIDC), so no
+  API keys are stored.
+- **crates.io** uses `CARGO_REGISTRY_TOKEN` for the first publish (which claims
+  the crate name); switch it to OIDC once the crate exists.
+- **Maven Central** uses the Sonatype Central Portal (GPG-signed, `io.axene`).
+- **Packagist** auto-syncs from git tags via its webhook; **SwiftPM** resolves
+  the git tag directly. Both release jobs only run tests as a gate.
+- Every release runs the package's tests before publishing.
 
 ## Keeping the spec in sync
 
