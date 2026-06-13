@@ -73,6 +73,10 @@ namespace Axene.Mailer
             => RequestAsync<ValidationResult>(HttpMethod.Post, "v1/emails/validate",
                 new Dictionary<string, object> { ["email"] = email }, ct);
 
+        /// <summary>List your sending domains and their verification status.</summary>
+        public Task<List<DomainRecord>> ListDomainsAsync(CancellationToken ct = default)
+            => RequestAsync<List<DomainRecord>>(HttpMethod.Get, "v1/domains/", null, ct);
+
         private async Task<T> RequestAsync<T>(HttpMethod method, string path, object? body, CancellationToken ct)
         {
             Exception? last = null;
@@ -198,6 +202,15 @@ namespace Axene.Mailer
         [JsonPropertyName("email")] public string Email { get; set; } = "";
         [JsonPropertyName("valid")] public bool Valid { get; set; }
         [JsonPropertyName("reason")] public string? Reason { get; set; }
+    }
+
+    public sealed class DomainRecord
+    {
+        [JsonPropertyName("id")] public string Id { get; set; } = "";
+        [JsonPropertyName("name")] public string Name { get; set; } = "";
+        [JsonPropertyName("status")] public string Status { get; set; } = "";
+        [JsonPropertyName("created_at")] public string? CreatedAt { get; set; }
+        [JsonPropertyName("platform_warning")] public string? PlatformWarning { get; set; }
     }
 
     /// <summary>Thrown for any non-2xx API response.</summary>

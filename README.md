@@ -11,7 +11,7 @@ This is a spec-driven monorepo: every client wraps the same public API
 | TypeScript / JavaScript | [`@axene/mailer`](packages/typescript) | npm | ✅ ready |
 | .NET (C#) | [`Axene.Mailer`](packages/dotnet) | NuGet | ✅ ready |
 | Python | `axene-mailer` | PyPI | 🚧 planned |
-| Java | `io.axene:mailer` | Maven Central | 🚧 planned |
+| Java | [`io.axene:mailer`](packages/java) | Maven Central | ✅ ready |
 | Go | `github.com/Axene-Solutions/axene-mailer-go` | n/a | 🚧 separate repo |
 
 > Go lives in its own repo because a Go module path is the repo path

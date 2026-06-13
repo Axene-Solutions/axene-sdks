@@ -78,6 +78,14 @@ export interface Email {
   [k: string]: unknown;
 }
 
+export interface Domain {
+  id: string;
+  name: string;
+  status: string;
+  created_at: string | null;
+  platform_warning?: string | null;
+}
+
 /** Thrown for any non-2xx API response. */
 export class AxeneError extends Error {
   readonly status: number;
@@ -209,8 +217,8 @@ class Emails {
 class Domains {
   constructor(private readonly client: Axene) {}
   /** List your sending domains and their verification status. */
-  list(): Promise<unknown[]> {
-    return this.client.request<unknown[]>('GET', '/v1/domains/');
+  list(): Promise<Domain[]> {
+    return this.client.request<Domain[]>('GET', '/v1/domains/');
   }
 }
 
