@@ -1,6 +1,6 @@
 # Axene Mailer SDKs
 
-Official client libraries for [Axene Mailer](https://axene.io) — professional email for Africa.
+Official client libraries for [Axene Mailer](https://axene.io): professional email for Africa.
 Send receipts, confirmations, and campaigns from your own domain. Priced in KES, billed via M-Pesa.
 
 This is a spec-driven monorepo: every client wraps the same public API
@@ -12,7 +12,7 @@ This is a spec-driven monorepo: every client wraps the same public API
 | .NET (C#) | [`Axene.Mailer`](packages/dotnet) | NuGet | ✅ ready |
 | Python | `axene-mailer` | PyPI | 🚧 planned |
 | Java | `io.axene:mailer` | Maven Central | 🚧 planned |
-| Go | `github.com/Axene-Solutions/axene-mailer-go` | — | 🚧 separate repo |
+| Go | `github.com/Axene-Solutions/axene-mailer-go` | n/a | 🚧 separate repo |
 
 > Go lives in its own repo because a Go module path is the repo path
 > (`go get github.com/Axene-Solutions/axene-mailer-go`). Everything else is fine in this monorepo.
@@ -62,7 +62,7 @@ git tag dotnet-v0.1.0 && git push --tags   # -> NuGet
 ```
 
 - **npm** uses `NPM_TOKEN` (repo secret) + provenance.
-- **NuGet** uses Trusted Publishing (OIDC) — no API key stored.
+- **NuGet** uses Trusted Publishing (OIDC), so no API key is stored.
 
 ## Keeping the spec in sync
 

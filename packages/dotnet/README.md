@@ -1,7 +1,7 @@
 # Axene.Mailer
 
 Official .NET client for [Axene Mailer](https://axene.io). Send receipts, confirmations,
-and campaigns from your own domain — priced in KES, billed via M-Pesa.
+and campaigns from your own domain, priced in KES, billed via M-Pesa.
 
 Targets `netstandard2.0` and `net8.0`, so it works from .NET Framework, .NET Core,
 .NET 8, and Unity.

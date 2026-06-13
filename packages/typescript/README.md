@@ -1,7 +1,7 @@
 # @axene/mailer
 
 Official TypeScript / JavaScript SDK for [Axene Mailer](https://axene.io).
-Send receipts, confirmations, and campaigns from your own domain — priced in KES, billed via M-Pesa.
+Send receipts, confirmations, and campaigns from your own domain, priced in KES, billed via M-Pesa.
 
 Zero runtime dependencies. Works in Node 18+, Bun, Deno, and edge runtimes (anywhere `fetch` exists).
 
