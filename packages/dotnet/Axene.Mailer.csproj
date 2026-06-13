@@ -10,7 +10,7 @@
 
     <!-- NuGet package metadata -->
     <PackageId>Axene.Mailer</PackageId>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <Authors>Axene Solutions</Authors>
     <Company>Axene Solutions</Company>
     <Description>Official .NET client for Axene Mailer: send receipts, confirmations, and campaigns from your own domain. Priced in KES, billed via M-Pesa.</Description>

@@ -40,7 +40,7 @@ namespace Axene.Mailer.Internal
             _http.BaseAddress ??= new Uri((baseUrl ?? DefaultBaseUrl).TrimEnd('/') + "/");
             _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
             if (!_http.DefaultRequestHeaders.UserAgent.Any())
-                _http.DefaultRequestHeaders.UserAgent.ParseAdd("Axene.Mailer/0.1.0");
+                _http.DefaultRequestHeaders.UserAgent.ParseAdd("Axene.Mailer/0.1.1");
             _maxRetries = Math.Max(1, maxRetries);
         }
 

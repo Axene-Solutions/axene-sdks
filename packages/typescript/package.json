@@ -1,6 +1,6 @@
 {
   "name": "@axene/mailer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Official TypeScript/JavaScript SDK for Axene Mailer: send receipts, confirmations, and campaigns from your own domain. Priced in KES, billed via M-Pesa.",
   "type": "module",
   "main": "./dist/index.cjs",
