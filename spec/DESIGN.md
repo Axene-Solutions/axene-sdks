@@ -1,4 +1,4 @@
-# Axene Mailer SDK — Design Contract
+# Axene Mailer SDK - Design Contract
 
 Every SDK (typescript, dotnet, java, python, rust, ruby, php, go, swift) exposes
 the SAME resources and methods over the SURFACE.md contract. Names below are the
@@ -46,7 +46,7 @@ ruby/rust/python, PascalCase methods for dotnet/go-exported, etc.).
 - `transfer(id, {targetEmail, note?}) -> DomainTransfer`
 - `checkAvailability(name) -> DomainAvailability`
 - `check(name) -> DomainCheck`
-(NICHE deferred unless trivial: nsProvider, bimi*, domainConnect* — OK to omit in
+(NICHE deferred unless trivial: nsProvider, bimi*, domainConnect* - OK to omit in
 v1; document as not-yet-covered. Do NOT fake them.)
 
 ### contacts

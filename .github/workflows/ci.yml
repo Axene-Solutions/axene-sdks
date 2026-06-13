@@ -61,3 +61,66 @@ jobs:
           python-version: '3.11'
       - run: pip install -e ".[dev]"
       - run: python -m pytest
+
+  rust:
+    if: contains(github.event.head_commit.message, '[test]') || contains(github.event.pull_request.title, '[test]')
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/rust
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test
+
+  ruby:
+    if: contains(github.event.head_commit.message, '[test]') || contains(github.event.pull_request.title, '[test]')
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/ruby
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+      - run: bundle exec rake test
+
+  php:
+    if: contains(github.event.head_commit.message, '[test]') || contains(github.event.pull_request.title, '[test]')
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/php
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+      - run: composer install --no-interaction
+      - run: ./vendor/bin/phpunit
+
+  go:
+    if: contains(github.event.head_commit.message, '[test]') || contains(github.event.pull_request.title, '[test]')
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/go
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - run: go vet ./...
+      - run: go test ./...
+
+  swift:
+    if: contains(github.event.head_commit.message, '[test]') || contains(github.event.pull_request.title, '[test]')
+    runs-on: macos-14
+    defaults:
+      run:
+        working-directory: packages/swift
+    steps:
+      - uses: actions/checkout@v4
+      - run: swift test

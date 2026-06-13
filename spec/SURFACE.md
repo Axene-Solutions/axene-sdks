@@ -1,4 +1,4 @@
-# Axene Mailer SDK — Core Surface Contract
+# Axene Mailer SDK - Core Surface Contract
 
 Single source of truth for the Core SDK surface, extracted directly from the
 backend routers + Pydantic schemas (not the OpenAPI guess). Base URL
@@ -174,7 +174,7 @@ has_csv_import (Starter+).
 
 ---
 
-## templates  (prefix /v1/templates)  — feature-gated has_templates (Starter+)
+## templates  (prefix /v1/templates)  - feature-gated has_templates (Starter+)
 
 Template: `{ id, name, subject: string|null, html_body: string|null, text_body:
 string|null, variables: string[]|null (server-derived, read-only), blocks_json:
