@@ -19,7 +19,7 @@ function toAddressList(
 }
 
 /** Drop keys whose value is `undefined` so they are omitted from the JSON body. */
-function prune(o: Record<string, unknown>): Record<string, unknown> {
+export function prune(o: Record<string, unknown>): Record<string, unknown> {
   for (const k of Object.keys(o)) if (o[k] === undefined) delete o[k];
   return o;
 }
